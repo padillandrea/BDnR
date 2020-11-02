@@ -1,0 +1,130 @@
+-- a. Mostrar el país, la región y el nombre de la compañía de los primeros 5 proveedores que contengan una 'M' o 'm' en el nombre. 
+-- Ordenar ascendentemente por país y descendentemente por región.
+SELECT Pais, Region, NomComp
+FROM cos://us-south/pedidos-clientes-csv/Proveedores.csv STORED AS CSV
+WHERE NomComp LIKE '%M%' OR NomComp LIKE '%m%'
+ORDER BY Pais ASC, Region DESC
+LIMIT 5
+INTO cos://us-south/resultados-consultas/ejerA/ JOBPREFIX NONE STORED AS CSV
+
+-- b. Listar el nombre, apellidos y cantidad de años de los empleados que tienen más de 10 años de antigüedad en la empresa.
+SELECT Nombre, Apellidos, FLOOR(datediff(NOW(), FechaContrata)/365) AS CantAnios
+FROM cos://us-south/pedidos-clientes-csv/Empleados.csv STORED AS CSV
+WHERE FLOOR(datediff(NOW(), FechaContrata)/365) > 10
+INTO cos://us-south/resultados-consultas/ejerB/ JOBPREFIX NONE STORED AS CSV
+
+-- c. Escribir el nombre y el monto de cada venta (PrecioUnidad x Cant) de los productos que se vendieron el último día de cada mes del último trimestre del año pasado.
+-- Nota: esta consulta, y en todas las que aplique, debe funcionar para cualquier período de cualquier año. Usar las funciones de manejo de fechas.
+SELECT prod.NomP, (det.PrecioUnidad * det.Cant) AS Monto, ped.FechaPed
+FROM cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV prod,
+	 cos://us-south/pedidos-clientes-csv/DetallePedidos.csv STORED AS CSV det, 
+	 cos://us-south/pedidos-clientes-csv/Pedidos.csv STORED AS CSV ped
+WHERE prod.IdP = det.IdP AND det.IdPed = ped.IdPed AND (YEAR(NOW()) - 1) == YEAR(ped.FechaPed) AND MONTH(ped.FechaPed) > 9 AND LAST_DAY(ped.FechaPed) == DATE(ped.FechaPed)
+INTO cos://us-south/resultados-consultas/ejerC/ JOBPREFIX NONE STORED AS CSV
+
+-- d. Obtener el nombre de los productos que no se vendieron el primer trimestre de este año.
+SELECT NomP
+FROM cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV
+WHERE IdP NOT IN (
+  SELECT IdP
+  FROM cos://us-south/pedidos-clientes-csv/DetallePedidos.csv STORED AS CSV det, 
+  	   cos://us-south/pedidos-clientes-csv/Pedidos.csv STORED AS CSV ped
+  WHERE det.IdPed = ped.IdPed AND YEAR(ped.FechaPed) = YEAR(NOW()) AND MONTH(ped.FechaPed) <= 3)
+INTO cos://us-south/resultados-consultas/ejerD/ JOBPREFIX NONE STORED AS CSV
+
+-- e. Escribir el nombre de los 3 empleados que tuvieron más cantidad de ventas (no de unidades vendidas) en el año antepasado. 
+-- Mostrar el nombre junto con la cantidad de ventas. 
+-- Ordenar descendentemente por la cantidad de ventas.
+SELECT emp.Nombre, COUNT(ped.IdEmp) AS CantVentas
+FROM cos://us-south/pedidos-clientes-csv/Empleados.csv STORED AS CSV emp, 
+	 cos://us-south/pedidos-clientes-csv/Pedidos.csv STORED AS CSV ped
+WHERE emp.IdEmp = ped.IdEmp AND (YEAR(NOW()) - 2) == YEAR(ped.FechaPed)
+GROUP BY emp.Nombre
+ORDER BY COUNT(ped.IdEmp) DESC
+LIMIT 3
+INTO cos://us-south/resultados-consultas/ejerE/ JOBPREFIX NONE STORED AS CSV
+
+-- f. Listar el nombre de las categorías junto con la cantidad de productos que tienen considerando solo a los productos con un precio inferior a 10. 
+-- Para aquellas categorías que no cumplan con esto, que aparezca un cero en su cantidad de productos.
+WITH cantidad_productos AS
+	(SELECT IdCat, COUNT(IdCat) AS CantProd
+	 FROM cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV
+	 WHERE Precio < 10
+	 GROUP BY IdCat)
+SELECT cat.NomCat, IFNULL(cp.CantProd, 0) AS CantProd
+FROM cos://us-south/pedidos-clientes-csv/Categorias.csv STORED AS CSV cat
+FULL OUTER JOIN cantidad_productos cp
+ON cat.IdCat = cp.IdCat
+INTO cos://us-south/resultados-consultas/ejerF/ JOBPREFIX NONE STORED AS CSV
+
+-- g. De los proveedores, escribir su país, ciudad y nombre del proveedor, para aquellos que están en una ciudad cuyo nombre inicia con una letra entre ‘F’ y ‘M’. 
+-- Acompañarlos con la cantidad de productos que abastecen. 
+-- Generar la salida en json.
+SELECT prov.Pais, prov.Cd, prov.NomComp, COUNT(DISTINCT prod.IdP) AS CantProductos
+FROM cos://us-south/pedidos-clientes-csv/Proveedores.csv STORED AS CSV prov, 
+	 cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV prod
+WHERE prov.IdProv = prod.IdProv AND prod.IdProv NOT IN (
+  SELECT DISTINCT IdProv
+  FROM cos://us-south/pedidos-clientes-csv/Proveedores.csv STORED AS CSV
+  WHERE SUBSTRING(NomComp, 1, 1) <= 'F' OR SUBSTRING(NomComp, 1, 1) >= 'M')
+GROUP BY prov.Pais, prov. Cd, prov.NomComp
+INTO cos://us-south/resultados-consultas/ejerG/ JOBPREFIX NONE STORED AS JSON
+
+-- h. Mostrar el nombre de las compañías (clientes), la cantidad de compras, la cantidad de unidades compradas y el monto total de las compras hechas (acumuladas) que hicieron en diciembre del año pasado.
+-- Nota: Pedidos.Cargo es el cargo por el envío del pedido, no el monto total del mismo.
+WITH unidades_monto AS (
+  	SELECT IdPed, COUNT(IdP) AS Unidades, SUM(PrecioUnidad * Cant) AS Total
+	FROM cos://us-south/pedidos-clientes-csv/DetallePedidos.csv STORED AS CSV det
+	GROUP BY IdPed)
+SELECT cli.NomComp, COUNT(ped.IdPed) AS CantCompras, SUM(um.Unidades) AS CantUnidades, SUM(um.Total) AS MontoTotal 
+FROM cos://us-south/pedidos-clientes-csv/Pedidos.csv STORED AS CSV ped, unidades_monto as um,
+	 cos://us-south/pedidos-clientes-csv/Clientes.csv STORED AS CSV cli
+WHERE um.IdPed = ped.IdPed AND ped.IdCli = cli.IdCli AND (YEAR(NOW()) - 1) == YEAR(ped.FechaPed) AND MONTH(ped.FechaPed) == 12
+GROUP BY cli.NomComp
+INTO cos://us-south/resultados-consultas/ejerH/ JOBPREFIX NONE STORED AS CSV
+
+-- i. Obtener el nombre de los empleados que vendieron productos de la categoría ‘Carnes’ tanto este año como el pasado (de ambos años, no sólo de uno o de otro).
+WITH carne AS (
+	SELECT ped.IdEmp, YEAR(ped.FechaPed) AS Anio
+	FROM cos://us-south/pedidos-clientes-csv/Categorias.csv STORED AS CSV cat,
+		 cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV prod,
+		 cos://us-south/pedidos-clientes-csv/DetallePedidos.csv STORED AS CSV det,
+  		 cos://us-south/pedidos-clientes-csv/Pedidos.csv STORED AS CSV ped
+	WHERE cat.IdCat = prod.IdCat AND prod.IdP = det.IdP AND det.IdPed = ped.IdPed
+  		AND cat.NomCat == 'Carnes')
+SELECT DISTINCT emp.Nombre 
+FROM carne c, cos://us-south/pedidos-clientes-csv/Empleados.csv STORED AS CSV emp
+WHERE c.IdEmp = emp.IdEmp AND c.Anio == YEAR(NOW()) AND emp.IdEmp IN (
+  	SELECT IdEmp FROM carne WHERE Anio == (YEAR(NOW()) - 1))
+INTO cos://us-south/resultados-consultas/ejerI/ JOBPREFIX NONE STORED AS CSV
+
+-- j. Mostrar el nombre, apellidos y puesto de cada empleado junto con los mismos datos de su jefe directo.
+SELECT DISTINCT emp.Nombre, emp.Apellidos, emp.Cargo, jefe.Nombre NombreJefe, jefe.Apellidos ApellidosJefe, jefe.Cargo CargoJefe
+FROM cos://us-south/pedidos-clientes-csv/Empleados.csv STORED AS CSV emp 
+LEFT JOIN cos://us-south/pedidos-clientes-csv/Empleados.csv STORED AS CSV jefe
+ON emp.Jefe = jefe.IdEmp
+INTO cos://us-south/resultados-consultas/ejerJ/ JOBPREFIX NONE STORED AS CSV
+
+-- k. Listar el nombre de las categorías que menos productos tienen, junto con la cantidad de esos productos.
+SELECT cat.NomCat, COUNT(prod.IdP) AS CantProd
+FROM cos://us-south/pedidos-clientes-csv/Categorias.csv STORED AS CSV cat,
+	 cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV prod
+WHERE cat.IdCat = prod.IdCat
+GROUP BY cat.NomCat
+ORDER BY COUNT(prod.IdP)
+LIMIT 3
+INTO cos://us-south/resultados-consultas/ejerK/ JOBPREFIX NONE STORED AS CSV
+
+-- l. Obtener el nombre de los productos que tuvieron al menos una venta en cada mes del primer semestre de este año. 
+WITH productos_primer_trimestre AS (
+  	SELECT det.IdP, ped.FechaPed
+	FROM cos://us-south/pedidos-clientes-csv/DetallePedidos.csv STORED AS CSV det,
+  	 	 cos://us-south/pedidos-clientes-csv/Pedidos.csv STORED AS CSV ped
+	WHERE det.IdPed = ped.IdPed AND YEAR(ped.FechaPed) == YEAR(NOW()) AND MONTH(ped.FechaPed) <= 3)
+SELECT prod.NomP
+FROM cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV prod, productos_primer_trimestre AS prodpt
+WHERE prod.IdP = prodpt.IdP AND MONTH(prodpt.FechaPed) == 1 AND prodpt.IdP IN (
+  	SELECT IdP FROM productos_primer_trimestre WHERE MONTH(FechaPed) == 2 AND IdP IN (
+	  	SELECT IdP FROM productos_primer_trimestre WHERE MONTH(FechaPed) == 3))
+GROUP BY prod.NomP
+INTO cos://us-south/resultados-consultas/ejerL/ JOBPREFIX NONE STORED AS CSV
