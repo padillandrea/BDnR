@@ -1,0 +1,14 @@
+cos://us-south/pedidos-clientes-csv/Proveedores.csv STORED AS CSV prov
+cos://us-south/pedidos-clientes-csv/Categorias.csv STORED AS CSV cat
+cos://us-south/pedidos-clientes-csv/Productos.csv STORED AS CSV prod
+cos://us-south/pedidos-clientes-csv/DetallePedidos.csv STORED AS CSV det
+cos://us-south/pedidos-clientes-csv/Empleados.csv STORED AS CSV emp
+cos://us-south/pedidos-clientes-csv/Pedidos.csv STORED AS CSV ped
+cos://us-south/pedidos-clientes-csv/Clientes.csv STORED AS CSV cli
+
+prov.IdProv = prod.IdProv
+cat.IdCat = prod.IdCat
+prod.IdP = det.IdP
+det.IdPed = ped.IdPed
+emp.IdEmp = ped.IdEmp
+ped.IdCli = cli.IdCli
