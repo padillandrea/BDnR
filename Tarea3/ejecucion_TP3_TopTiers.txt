@@ -1,0 +1,20 @@
+# b) Porcentaje del tipo de dispositivo por operador.
+type regqoe100.csv | python3 mapperEj3b.py | sort | python3 reducerEj3b.py
+
+# c) Grado de Servicio: Distribución (histograma) del grado de servicio general.
+type regqoe100.csv | python3 mapperEj3c.py | sort | python3 reducerEj3c.py
+
+# d) Calidad de experiencia: Promedio general y por operador.
+type regqoe100.csv | python3 mapperEj3d.py | sort | python3 reducerEj3d.py
+
+# e) Identifica las cinco radio bases que ofrecen, respectivamente, la mejor y la peor calidad de experiencia.
+type regqoe100.csv | python3 mapperEj3e.py | sort | python3 reducerEj3e.py
+
+# g) Porcentaje de llamadas por tipo de operador.
+type regqoe100.csv | python3 mapperEj3g.py | sort | python3 reducerEj3g.py
+
+# h) Los tres dispositivos que más llamadas hacen.
+type regqoe100.csv | python3 mapperEj3h.py | sort | python3 reducerEj3h.py
+
+# i) Las tres radio bases con mayor tráfico. 
+type regqoe100.csv | python3 mapperEj3i.py | sort | python3 reducerEj3i.py
