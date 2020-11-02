@@ -1,0 +1,298 @@
+/*
+ * TAREA 2 - Top tiers
+ * Fecha de entrega: clase 9 (03/09/2020).
+ * 
+ */
+
+/*
+ * EJERCICIO 3:
+ * Una cadena de supermercados desea saber cual es la tendencia de sus clientes en cuanto a
+ * los productos que adquieren cuando realizan sus compras en sus diferentes sucursales.
+ * Primeramente, la cadena quiere saber:
+ * - las fechas en que los clientes van a hacer sus compras, 
+ * - a que sucursales acuden, 
+ * - cuales productos compran y en que cantidad,
+ * - el total de la compra realizada.
+ * Adicionalmente la cadena quiere conocer, por sucursal y por fecha:
+ * - cuales productos se vendieron en el dia, 
+ * - el total de unidades de cada uno y 
+ * - el monto total de la venta de cada producto.
+ * 
+ */
+//create keyspace ej3
+//with replication = {
+//	'class' : 'SimpleStrategy',
+//	'replication_factor' : 1
+//};
+//
+//use ej3;
+//
+//create table compra (
+//	id_compra timestamp,
+//	id_sucursal int,
+//	cliente varchar,
+//	fecha varchar,
+//	producto map< varchar, int >,
+//	total double,
+//	PRIMARY KEY ( cliente, fecha , id_sucursal, id_compra )
+//) WITH CLUSTERING ORDER BY ( fecha DESC );
+//
+//create table producto (
+//	id_producto int,
+//	producto varchar,
+//	venta timestamp,
+//	PRIMARY KEY ( id_producto, venta )
+//) WITH CLUSTERING ORDER BY ( venta DESC );
+//
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-30 00:00:00', 0, 'Andrea', '2020-08-30', { 'cereal' : 1, 'leche' : 1 }, 68.30 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-30 00:04:47', 1, 'Maritrini', '2020-08-30', { 'sushi' : 2, 'hummus' : 1, 'pan de centeno' : 1 }, 340.76 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-30 09:13:32', 2, 'Marco', '2020-08-30', { 'lampara' : 1, 'foco' : 1 }, 386.02 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-31 10:18:32', 3, 'Victor', '2020-08-31', { 'papel higienico' : 12 }, 124.63 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-31 13:47:56', 4, 'Juan', '2020-08-31', { 'helado' : 4, 'datil' : 7, 'paquete chispas chocolate' : 1 }, 657.35 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-31 13:59:59', 4, 'Lorena', '2020-08-31', { 'manzana' : 2, 'sandwich' : 1, 'refresco' : 1 }, 78.96 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-31 17:01:49', 3, 'Victor', '2020-08-31', { 'mostaza' : 1, 'salchicha' : 5 }, 112.53 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-08-31 18:21:11', 2, 'Lorena', '2020-08-31',{ 'limon' : 12 }, 64.82 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-01 00:00:00', 0, 'Andrea', '2020-09-01', { 'sushi' : 2, 'hummus' : 1, 'pan de centeno' : 1 }, 340.76 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-01 00:04:47', 1, 'Maritrini', '2020-09-01', { 'limon' : 12 }, 64.82 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-01 09:13:32', 2, 'Marco', '2020-09-01', { 'mostaza' : 1, 'salchicha' : 5 }, 112.53 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-01 10:18:32', 3, 'Victor', '2020-09-01', { 'helado' : 4, 'datil' : 7, 'paquete chispas chocolate' : 1 }, 657.35 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-01 13:47:56', 4, 'Juan', '2020-09-01', { 'papel higienico' : 12 }, 124.63 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-02 13:59:59', 4, 'Lorena', '2020-09-02', { 'manzana' : 2, 'sandwich' : 1, 'refresco' : 1 }, 78.96 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-02 17:01:49', 3, 'Victor', '2020-09-02', { 'lampara' : 1, 'foco' : 1 }, 386.02 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-02 18:21:11', 2, 'Lorena', '2020-09-02', { 'cereal' : 1, 'leche' : 1 }, 68.30 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-02 20:36:23', 1, 'Ivana', '2020-09-02', { 'atun' : 2 }, 26.97 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-02 20:48:24', 0, 'Marco', '2020-09-02', { 'picafresa' : 1 }, 0.50 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total )
+//values ( '2020-09-02 21:00:00', 0, 'Andrea', '2020-09-02', { 'jugo' : 1 }, 14.56 );
+//insert into compra ( id_compra, id_sucursal, cliente, fecha, producto, total) 
+//values ( '2020-09-03 23:04:47', 2, 'Maritrini', '2020-09-03', { 'azucar': 1, 'naranja': 6 }, 88.90 );
+//
+//select * from compra;
+//
+//insert into producto ( id_producto, producto, venta )
+//values ( 0, 'cereal', '2020-08-30 00:00:00' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 0, 'cereal', '2020-09-02 18:21:11' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 1, 'leche', '2020-08-30 00:00:00' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 1, 'leche', '2020-09-02 18:21:11' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 2, 'sushi', '2020-08-30 00:04:47' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 2, 'sushi', '2020-09-01 00:00:00' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 3, 'hummus', '2020-08-30 00:04:47' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 3, 'hummus', '2020-09-01 00:00:00' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 4, 'pan de centeno', '2020-08-30 00:04:47' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 4, 'pan de centeno', '2020-09-01 00:00:00' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 5, 'lampara', '2020-08-30 09:13:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 5, 'lampara', '2020-09-02 17:01:49' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 6, 'foco', '2020-08-30 09:13:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 6, 'foco', '2020-09-02 17:01:49' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 7, 'papel higienico', '2020-08-31 10:18:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 7, 'papel higienico', '2020-09-01 13:47:56' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 8, 'helado', '2020-08-31 13:47:56' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 8, 'helado', '2020-09-01 10:18:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 9, 'datil', '2020-08-31 13:47:56' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 9, 'datil', '2020-09-01 10:18:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 10, 'paquete chispas chocolate', '2020-08-31 13:47:56' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 10, 'paquete chispas chocolate', '2020-09-01 10:18:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 11, 'manzana', '2020-08-31 13:59:59' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 11, 'manzana', '2020-09-02 13:59:59' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 12, 'sandwich', '2020-08-31 13:59:59' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 12, 'sandwich', '2020-09-02 13:59:59' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 13, 'refresco', '2020-08-31 13:59:59' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 13, 'refresco', '2020-09-02 13:59:59' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 14, 'mostaza', '2020-08-31 17:01:49' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 14, 'mostaza', '2020-09-01 09:13:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 15, 'salchicha', '2020-08-31 17:01:49' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 15, 'salchicha', '2020-09-01 09:13:32' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 16, 'limon', '2020-08-31 18:21:11' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 16, 'limon', '2020-09-01 00:04:47' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 17, 'atun', '2020-09-02 20:36:23' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 18, 'picafresa', '2020-09-02 20:48:24' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 19, 'jugo', '2020-09-02 21:00:00' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 20, 'azucar', '2020-09-03 23:04:47' );
+//insert into producto ( id_producto, producto, venta )
+//values ( 21, 'naranja', '2020-09-03 23:04:47' );
+//
+//select * from producto;
+//
+//// a. La cantidad total de clientes que acudieron a una sucursal dada en una fecha especifica.
+//select count(*) from compra where id_sucursal = 0 and fecha = '2020-09-02' allow filtering;
+//
+//// b. La cantidad total de clientes que acudieron a todas las sucursales en un dia concreto.
+//select count(*) from compra where fecha = '2020-09-02' allow filtering;
+//
+//// c. Los productos que adquirio un cliente dado en una fecha dada.
+//select producto from compra where cliente = 'Lorena' and fecha = '2020-09-02' allow filtering;
+//
+//// d. El nombre de los clientes que acudieron a comprar el mes pasado.
+//select  cliente from compra where fecha > '2020-08-31' and fecha < '2020-09-02' allow filtering;
+//
+//// e. La cantidad total de productos (tipos, no unidades) que se vendieron en un dia concreto.
+//select count(*) from producto where venta > '2020-08-31 23:59:59' and venta < '2020-09-02 00:00:00' allow filtering;
+//
+//// f. El nombre de los productos que se vendieron la semana pasada (dia inicial: lunes). 
+//select count(*) from producto where venta > '2020-08-23 23:59:59' and venta < '2020-08-31 00:00:00' allow filtering;
+
+
+/*
+ * EJERCICIO 4:
+ * Un banco desea conocer informacion acerca de las empresas y clientes preferentes que
+ * utilizan los diversos productos que ofrece (cheques, tarjeta de credito e inversiones).
+ * El banco quiere conocer para cada cliente:
+ * - cuales son los montos totales de los depositos que han efectuado en los diversos productos que estos tienen,
+ * - cuales son los montos totales de los retiros que han efectuado en los diversos productos que estos tienen,
+ * - la fecha en que los realizaron.
+ * Asimismo, desea saber por cada producto que maneja y por cada dia:
+ * - los totales de depositos, 
+ * - los totales de retiros
+ * por cada medio que ofrece el banco (ventanilla, internet, celular y terminales en comercios en el caso de tarjeta). 
+ * 
+ */
+//create keyspace ej4
+//with replication = {
+//	'class' : 'SimpleStrategy',
+//	'replication_factor' : 1
+//};
+//
+//use ej4;
+
+//CREATE TABLE cuentas (
+//    cuentaid int,
+//    clientid int,
+//    cliente varchar,
+//    producto varchar,
+//    saldo double,
+//    PRIMARY KEY (producto, cuentaid)
+//)WITH CLUSTERING ORDER BY (cuentaid ASC);
+//
+//create index on cuentas(clientid);
+//create index on cuentas(cliente);
+
+//CREATE TABLE transacciones (
+//   transaccion_timestamp timeuuid,
+//   cuentaid int,
+//   nombre varchar,
+//   producto varchar,
+//   date text, 
+//   medio varchar,
+//   monto double,
+//   tipo varchar, 
+//   PRIMARY KEY ( (cuentaid, nombre), date)
+//) WITH CLUSTERING ORDER BY (date ASC);
+//
+//create index on transacciones(monto);
+//create index on transacciones(tipo);
+//create index on transacciones(producto);
+
+//insert into cuentas (cuentaid, clientid, cliente, producto, saldo)
+//values (1, 1, 'Juan', 'inversiones', 600);
+//insert into cuentas (cuentaid, clientid, cliente, producto, saldo)
+//values (2, 1, 'Pedro', 'cheques', 0);
+//insert into cuentas (cuentaid, clientid, cliente, producto, saldo)
+//values (3, 2, 'Guillermo', 'credito', 400);
+//insert into cuentas (cuentaid, clientid, cliente, producto, saldo)
+//values (4, 3, 'Maria', 'inversiones', 1000);
+//insert into cuentas (cuentaid, clientid, cliente, producto, saldo)
+//values (5, 2, 'Guillermo', 'inversiones', 300);
+
+//insert into transacciones (transaccion_timestamp, cuentaid, nombre, producto, date, medio, monto, tipo)
+//values (now(), 1, 'Juan', 'inversiones', '2020-08-23', 'ventanilla', 500, 'retiro');
+//insert into transacciones (transaccion_timestamp, cuentaid, nombre, producto, date, medio, monto, tipo)
+//values (now(), 2, 'Pedro', 'cheques', '2020-08-31', 'internet', 1100, 'deposito');
+//insert into transacciones (transaccion_timestamp, cuentaid, nombre, producto, date, medio, monto, tipo)
+//values (now(), 4, 'Maria', 'inversiones', '2020-09-01', 'terminal', 450, 'deposito');
+//insert into transacciones (transaccion_timestamp, cuentaid, nombre, producto, date, medio, monto, tipo)
+//values (now(), 3, 'Guillermo', 'crédito', '2020-09-03', 'internet', 300, 'retiro');
+//select * from transacciones;
+
+// a. El tipo de productos que maneja un cliente dado.
+//SELECT distinct producto
+//FROM cuentas
+//WHERE cliente = 'Guillermo';
+
+// b. La cantidad total de clientes que manejan inversiones.
+//SELECT count(*)
+//FROM cuentas
+//WHERE producto = 'inversiones';
+
+// c. El nombre de los clientes que hicieron depositos o retiros la semana pasada (dia inicial: lunes).
+//SELECT nombre
+//FROM transacciones
+//WHERE date > '2020-08-30'
+//and date < '2020-09-07'
+//allow filtering;
+
+// d. El nombre de los clientes, y el dia, que hicieron retiros superiores a un monto dado.
+//SELECT nombre, date
+//FROM transacciones
+//WHERE tipo = 'retiro' 
+//AND monto > 485
+//allow filtering;
+
+// e. Los montos de los depositos y retiros que se hicieron para un producto dado en un rango de fechas.
+//SELECT monto
+//FROM transacciones
+//WHERE producto = 'inversiones'
+//and date >='2020-08-31'
+//and date <= '2020-09-04';
+
+// f. El nombre de los productos, y del medio, que tuvieron depositos superiores a un monto especifico en un dia concreto. 
+//SELECT producto, medio
+//FROM transacciones
+//WHERE date = '2020-08-31'
+//and tipo = 'deposito' 
+//and monto > 1000
+//allow filtering;
