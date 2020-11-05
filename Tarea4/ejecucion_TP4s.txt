@@ -115,7 +115,7 @@ ORDER BY COUNT(prod.IdP)
 LIMIT 3
 INTO cos://us-south/resultados-consultas/ejerK/ JOBPREFIX NONE STORED AS CSV
 
--- l. Obtener el nombre de los productos que tuvieron al menos una venta en cada mes del primer semestre de este año. 
+-- l. Obtener el nombre de los productos que tuvieron al menos una venta en cada mes del primer trimestre de este año. 
 WITH productos_primer_trimestre AS (
   	SELECT det.IdP, ped.FechaPed
 	FROM cos://us-south/pedidos-clientes-csv/DetallePedidos.csv STORED AS CSV det,
